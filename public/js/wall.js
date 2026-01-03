@@ -132,6 +132,14 @@ function dripCheck() {
 dripCheck();
 
 // Socket Events
+socket.on('peer_joined', () => {
+    if (!connected) {
+        connected = true;
+        overlay.classList.add('hidden');
+        console.log('Mobile Controller Connected!');
+    }
+});
+
 socket.on('update_cursor', (data) => {
     if (!connected) {
         connected = true;

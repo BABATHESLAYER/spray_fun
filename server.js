@@ -82,6 +82,8 @@ io.on('connection', (socket) => {
     socket.on('join_room', (roomId) => {
         socket.join(roomId);
         console.log(`User ${socket.id} joined room: ${roomId}`);
+        // Notify others that a new peer joined (e.g., mobile controller connected)
+        socket.to(roomId).emit('peer_joined');
     });
 
     // Mobile -> Desktop events

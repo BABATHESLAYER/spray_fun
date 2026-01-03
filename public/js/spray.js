@@ -76,7 +76,8 @@ function stopSound() {
 
 // --- Sensor Handling ---
 function handleOrientation(event) {
-    if (!event.alpha) return;
+    // Relaxed check: Some devices might not have alpha, but have beta/gamma
+    if (event.beta === null || event.gamma === null) return;
 
     // Calculate relative angles based on offset
     // This is a simplified "Laser Pointer" logic.
