@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Graffiti Wall</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="connect-overlay">
+        <div class="content">
+            <h1>Digital Graffiti Wall</h1>
+            <p>Scan to Connect Spray Can</p>
+            <canvas id="qrcode"></canvas>
+            <div id="connection-status">Waiting for connection...</div>
+        </div>
+    </div>
+
+    <canvas id="wall-canvas"></canvas>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="js/qrcode.min.js"></script>
+    <script src="js/wall.js"></script>
+</body>
+</html>
