@@ -12,11 +12,29 @@ console.log('Room ID:', roomId);
 // Connect to room
 socket.emit('join_room', roomId);
 
-// Generate QR Code
-const mobileUrl = `${window.location.protocol}//${window.location.host}/mobile?room=${roomId}`;
-QRCode.toCanvas(qrCanvas, mobileUrl, { width: 200 }, function (error) {
-    if (error) console.error(error);
-    console.log('QR Code generated for:', mobileUrl);
+// Request Server IP for valid QR Code
+socket.emit('get_server_ip');
+
+socket.on('server_ip', (data) => {
+    let host = window.location.host;
+    // If we are on localhost, use the server detected IP if available
+    if ((host.startsWith('localhost') || host.startsWith('127.0.0.1')) && data.ip && data.ip !== 'localhost') {
+        host = `${data.ip}:${window.location.port || 3000}`;
+    }
+
+    // Generate QR Code
+    const mobileUrl = `${window.location.protocol}//${host}/mobile?room=${roomId}`;
+
+    // Clear previous if any (though usually runs once)
+    const context = qrCanvas.getContext('2d');
+    context.clearRect(0, 0, qrCanvas.width, qrCanvas.height);
+
+    QRCode.toCanvas(qrCanvas, mobileUrl, { width: 200 }, function (error) {
+        if (error) console.error(error);
+        console.log('QR Code generated for:', mobileUrl);
+        // Show the URL text below for manual entry if needed
+        statusText.innerHTML = `Scan above or visit:<br><small>${mobileUrl}</small>`;
+    });
 });
 
 // Canvas Setup

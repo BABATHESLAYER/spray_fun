@@ -63,3 +63,4 @@ Turn your smartphone into a virtual spray can and paint on your PC screen in rea
 
 *   **Sensors not working (iOS)**: iOS requires explicit permission for motion sensors and must be served over HTTPS in some contexts. If testing locally, ensure you tap "Allow" when asked for motion access.
 *   **Connection issues**: Ensure both devices are on the exact same Wi-Fi network. Firewalls might block the connection; try allowing Node.js through your firewall.
+*   **Wrong IP Address (VirtualBox/VMware)**: If the QR code points to an address like `192.168.56.1` but your phone cannot connect, your computer might have multiple network adapters. Check the terminal output when you start the server; it lists all available IPs. Use the one that matches your Wi-Fi network (commonly `192.168.0.x` or `192.168.1.x`).

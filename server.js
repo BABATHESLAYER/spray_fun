@@ -1,9 +1,9 @@
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
-const ip = require('ip');
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
 
 const app = express();
 const server = http.createServer(app);
@@ -107,6 +107,11 @@ io.on('connection', (socket) => {
         socket.to(data.room).emit('recenter', data);
     });
 
+    // Relay Save Request (Mobile -> Desktop)
+    socket.on('save_image_request', (data) => {
+        socket.to(data.room).emit('save_image_request', data);
+    });
+
     // Save Image Handler
     socket.on('save_image', (data) => {
         // data: { room, image: 'base64string' }
@@ -124,6 +129,27 @@ io.on('connection', (socket) => {
         });
     });
 
+    // Handle request for server IP
+    socket.on('get_server_ip', () => {
+        const interfaces = os.networkInterfaces();
+        let bestIp = '';
+
+        // Find best guess IP (prioritize 192.168.x.x)
+        for (const name of Object.keys(interfaces)) {
+            for (const iface of interfaces[name]) {
+                if ('IPv4' !== iface.family || iface.internal) {
+                    continue;
+                }
+                if (iface.address.startsWith('192.168.')) {
+                    bestIp = iface.address;
+                } else if (!bestIp) {
+                    bestIp = iface.address;
+                }
+            }
+        }
+        socket.emit('server_ip', { ip: bestIp || 'localhost' });
+    });
+
     socket.on('disconnect', () => {
         console.log('User disconnected:', socket.id);
     });
@@ -131,10 +157,30 @@ io.on('connection', (socket) => {
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-    const localIp = ip.address();
+    const interfaces = os.networkInterfaces();
+    const addresses = [];
+    for (const name of Object.keys(interfaces)) {
+        for (const iface of interfaces[name]) {
+            if ('IPv4' !== iface.family || iface.internal) {
+                continue;
+            }
+            addresses.push({ name, address: iface.address });
+        }
+    }
+
     console.log(`\n=== Digital Graffiti Wall ===`);
     console.log(`Server running at: http://localhost:${PORT}`);
-    console.log(`Local Network URL: http://${localIp}:${PORT}`);
+
+    if (addresses.length > 0) {
+        console.log(`\nAvailable Network Interfaces:`);
+        addresses.forEach(addr => {
+            console.log(` - ${addr.name}: http://${addr.address}:${PORT}`);
+        });
+        console.log(`\nUse the address that matches your WiFi network (usually 192.168.x.x).`);
+    } else {
+        console.log(`Local Network URL: http://localhost:${PORT}`);
+    }
+
     console.log(`To connect mobile, scan the QR code on the desktop screen.`);
     console.log(`=============================\n`);
 });
