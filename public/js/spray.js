@@ -21,7 +21,7 @@ const statusDiv = document.getElementById('status');
 
 // State
 let isSpraying = false;
-let offset = { alpha: 0, beta: 0, gamma: 0 };
+let offset = null; // Auto-calibrate on first event
 let audioCtx;
 let noiseNode;
 let gainNode;
@@ -78,6 +78,11 @@ function stopSound() {
 function handleOrientation(event) {
     // Relaxed check: Some devices might not have alpha, but have beta/gamma
     if (event.beta === null || event.gamma === null) return;
+
+    // Auto-calibrate on first valid event
+    if (!offset) {
+        offset = { beta: event.beta, gamma: event.gamma };
+    }
 
     // Calculate relative angles based on offset
     // This is a simplified "Laser Pointer" logic.
@@ -181,20 +186,10 @@ sizeSlider.addEventListener('input', (e) => {
 
 // Recenter
 recenterBtn.addEventListener('click', () => {
-    // Capture current orientation as the new "Zero"
-    // We need to listen to one event to grab current values,
-    // or just reset our offset variables next time 'deviceorientation' fires?
-    // Better: set a flag to capture next event.
-
-    const handler = (event) => {
-        offset.beta = event.beta;
-        offset.gamma = event.gamma;
-        // Alpha is messy, let's ignore for now or add if needed for yaw
-        window.removeEventListener('deviceorientation', handler);
-        socket.emit('recenter', { room: roomId });
-        if (navigator.vibrate) navigator.vibrate(50);
-    };
-    window.addEventListener('deviceorientation', handler);
+    // Reset offset to null so next event re-calibrates
+    offset = null;
+    socket.emit('recenter', { room: roomId });
+    if (navigator.vibrate) navigator.vibrate(50);
 });
 
 // Save
